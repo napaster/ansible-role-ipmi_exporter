@@ -37,6 +37,19 @@
   vars:
     ipmi_exporter_install_package: "[] |
       map(&install_package || 'false', @) | [0]"
+- name: "ipmi_exporter | Cleanup legacy workaround artifacts (sudoers, drop-ins, .yaml symlink)"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/sudoers.d/ipmi_exporter
+    - /etc/systemd/system/ipmi_exporter.service.d/run-as-root.conf
+    - /etc/systemd/system/ipmi_exporter.service.d/group-override.conf
+    - /opt/ipmi_exporter/ipmi_exporter.yaml
+  notify:
+    - "Daemon reload"
+    - "Restart ipmi_exporter"
+
 - name: "ipmi_exporter | Include deployment tasks"
   ansible.builtin.import_tasks:
     file: "deploy.yml"
