@@ -1,0 +1,22 @@
+---
+- name: "ipmi_exporter | Persist IPMI kernel modules via modules-load.d"
+  ansible.builtin.copy:
+    dest: '/etc/modules-load.d/ipmi.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    content: |
+      # Managed by Ansible. Do not edit manually.
+      # IPMI kernel modules needed by /dev/ipmi0 (freeipmi / ipmitool).
+      ipmi_msghandler
+      ipmi_si
+      ipmi_devintf
+
+- name: "ipmi_exporter | Load IPMI kernel modules now"
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: "present"
+  loop:
+    - "ipmi_msghandler"
+    - "ipmi_si"
+    - "ipmi_devintf"

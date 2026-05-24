@@ -3,7 +3,7 @@
     deployment]"
   ansible.builtin.template:
     src: "ipmi_exporter.options.j2"
-    dest: "/etc/conf.d/ipmi_exporter"
+    dest: "{{ hostvars[inventory_hostname]['ipmi_exporter_options_dest'] }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -22,8 +22,8 @@
 - name: "ipmi_exporter | Deploy ipmi_exporter modules [package deployment]"
   ansible.builtin.template:
     src: "ipmi_exporter.yml.j2"
-    dest: "{{ hostvars[inventory_hostname]['ipmi_exporter_conf_dest'] +
-      '/ipmi_exporter.yml' }}"
+    dest: "{{ hostvars[inventory_hostname]['ipmi_exporter_conf_dest'] + '/' +
+      hostvars[inventory_hostname]['ipmi_exporter_conf_filename'] }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -42,8 +42,8 @@
 - name: "ipmi_exporter | Deploy ipmi_exporter modules [not package deployment]"
   ansible.builtin.template:
     src: "ipmi_exporter.yml.j2"
-    dest: "{{ hostvars[inventory_hostname]['ipmi_exporter_dest'] +
-      '/ipmi_exporter.yml' }}"
+    dest: "{{ hostvars[inventory_hostname]['ipmi_exporter_dest'] + '/' +
+      hostvars[inventory_hostname]['ipmi_exporter_conf_filename'] }}"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -78,6 +78,60 @@
   vars:
     ipmi_exporter_install_package:
       "[] | map(&install_package || 'false', @) | [0]"
+  notify:
+    - "Daemon reload"
+    - "Restart ipmi_exporter"
+- name: "ipmi_exporter | Ensure systemd service.d directory exists"
+  ansible.builtin.file:
+    path: "{{ '/etc/systemd/system/' +
+      hostvars[inventory_hostname]['ipmi_exporter_service'] + '.service.d' }}"
+    state: 'directory'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+  when:
+    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
+    - "hostvars[inventory_hostname]['ipmi_exporter']
+      not in ['', [], '[]', None]"
+    - "hostvars[inventory_hostname]['ipmi_exporter_drop_no_new_privileges']
+       | default(false) | bool"
+- name: "ipmi_exporter | Relax distro service hardening so freeipmi can talk to /dev/ipmi0 (run as root, no sudo)"
+  ansible.builtin.copy:
+    dest: "{{ '/etc/systemd/system/' +
+      hostvars[inventory_hostname]['ipmi_exporter_service'] +
+      '.service.d/relax-hardening.conf' }}"
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    content: |
+      # Managed by Ansible. Do not edit manually.
+      # The distro service unit ships with strict sandboxing (NoNewPrivileges,
+      # empty CapabilityBoundingSet, PrivateDevices, etc.) which blocks both
+      # sudo-based privilege elevation and direct /dev/ipmi0 access. Easiest
+      # working setup: run the exporter as root and skip the sandbox.
+      [Service]
+      User=root
+      Group=root
+      NoNewPrivileges=false
+      CapabilityBoundingSet=~
+      AmbientCapabilities=~
+      PrivateDevices=false
+      ProtectSystem=no
+      ProtectHome=no
+      ProtectControlGroups=no
+      ProtectKernelModules=no
+      ProtectKernelTunables=no
+      ProtectHostname=no
+      LockPersonality=no
+      RestrictRealtime=no
+      RestrictNamespaces=no
+      MemoryDenyWriteExecute=no
+  when:
+    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
+    - "hostvars[inventory_hostname]['ipmi_exporter']
+      not in ['', [], '[]', None]"
+    - "hostvars[inventory_hostname]['ipmi_exporter_drop_no_new_privileges']
+       | default(false) | bool"
   notify:
     - "Daemon reload"
     - "Restart ipmi_exporter"
