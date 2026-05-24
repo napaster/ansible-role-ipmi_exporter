@@ -2,6 +2,15 @@
 - name: "ipmi_exporter | Include pre requisite tasks"
   ansible.builtin.import_tasks:
     file: "pre_requisite.yml"
+- name: "ipmi_exporter | Include IPMI kernel modules tasks"
+  ansible.builtin.import_tasks:
+    file: "kernel.yml"
+  when:
+    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
+    - "hostvars[inventory_hostname]['ipmi_exporter']
+      not in ['', [], '[]', None]"
+    - "hostvars[inventory_hostname]['ipmi_exporter_load_kernel_modules']
+       | default(true) | bool"
 - name: "ipmi_exporter | Include dependency installation tasks"
   ansible.builtin.import_tasks:
     file: "dependencies.yml"

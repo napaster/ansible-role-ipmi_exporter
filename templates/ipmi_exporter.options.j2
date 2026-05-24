@@ -6,7 +6,7 @@
   not in ['', [], '[]', None] %}
 {% for i in lookup('ansible.builtin.vars', 'ipmi_exporter_options') %}
 {% if loop['first'] %}
-{{ 'OPTIONS=\"' -}}
+{{ (lookup('ansible.builtin.vars', 'ipmi_exporter_options_env_var', default='OPTIONS') | string) + '=\"' -}}
 {% endif %}
 {% if i['freeipmi_path'] is defined and i['freeipmi_path'] not in
   ['', [], '[]', None] %}
@@ -28,5 +28,5 @@
 {% endif %}
 {% endfor %}
 {% else %}
-{{ 'OPTIONS=""' }}
+{{ (lookup('ansible.builtin.vars', 'ipmi_exporter_options_env_var', default='OPTIONS') | string) + '=""' }}
 {% endif %}

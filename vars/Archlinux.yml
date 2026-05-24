@@ -1,10 +1,34 @@
 ---
+# On Arch the role supports two layouts, switched by
+# `ipmi_exporter_use_distro_package` (default true on Arch — see defaults/main.yml):
+#   true  → distro package `extra/prometheus-ipmi-exporter`,
+#           service prometheus-ipmi-exporter,
+#           options EnvironmentFile /etc/prometheus/ipmi-exporter.env,
+#           config /etc/prometheus/ipmi-exporter.yml
+#   false → role downloads upstream binary tarball into /opt/ipmi_exporter,
+#           service ipmi_exporter,
+#           options /etc/conf.d/ipmi_exporter,
+#           config /opt/ipmi_exporter/ipmi_exporter.yml
 ipmi_exporter_dest: '/opt/ipmi_exporter'
 ipmi_exporter_conf_dest: '/etc/prometheus'
 ipmi_exporter_bin: '/usr/bin/ipmi_exporter'
-ipmi_exporter_service: 'ipmi_exporter'
-ipmi_exporter_package: 'ipmi_exporter'
 ipmi_exporter_packages_deps:
   - 'unzip'
   - 'tar'
   - 'freeipmi'
+
+ipmi_exporter_package: "{{ 'prometheus-ipmi-exporter'
+    if (ipmi_exporter_use_distro_package | default(false) | bool)
+    else 'ipmi_exporter' }}"
+ipmi_exporter_service: "{{ 'prometheus-ipmi-exporter'
+    if (ipmi_exporter_use_distro_package | default(false) | bool)
+    else 'ipmi_exporter' }}"
+ipmi_exporter_options_dest: "{{ '/etc/prometheus/ipmi-exporter.env'
+    if (ipmi_exporter_use_distro_package | default(false) | bool)
+    else '/etc/conf.d/ipmi_exporter' }}"
+ipmi_exporter_options_env_var: "{{ 'IPMI_EXPORTER_ARGS'
+    if (ipmi_exporter_use_distro_package | default(false) | bool)
+    else 'OPTIONS' }}"
+ipmi_exporter_conf_filename: "{{ 'ipmi-exporter.yml'
+    if (ipmi_exporter_use_distro_package | default(false) | bool)
+    else 'ipmi_exporter.yml' }}"
