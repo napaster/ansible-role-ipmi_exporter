@@ -2,6 +2,13 @@
 - name: "ipmi_exporter | Include pre requisite tasks"
   ansible.builtin.import_tasks:
     file: "pre_requisite.yml"
+- name: "ipmi_exporter | Include dependency installation tasks"
+  ansible.builtin.import_tasks:
+    file: "dependencies.yml"
+  when:
+    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
+    - "hostvars[inventory_hostname]['ipmi_exporter']
+      not in ['', [], '[]', None]"
 - name: "ipmi_exporter | Include packages tasks [package deployment]"
   ansible.builtin.include_tasks:
     file: "packages.yml"

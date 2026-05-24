@@ -74,8 +74,8 @@
   when:
     - "lookup('ansible.builtin.vars', 'ipmi_exporter_version_tag', default='')
       not in ['', [], '[]', None]"
-    - "not lookup('ansible.builtin.vars',
-      'ipmi_exporter_version_tag')['skipped']"
+    - "not (lookup('ansible.builtin.vars',
+      'ipmi_exporter_version_tag').get('skipped', false))"
 - name: "ipmi_exporter | Create ipmi_exporter catalog [package deployment]"
   ansible.builtin.file:
     path: "{{ hostvars[inventory_hostname]['ipmi_exporter_conf_dest'] }}"

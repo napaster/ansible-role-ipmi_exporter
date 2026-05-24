@@ -1,0 +1,20 @@
+---
+- name: "ipmi_exporter | Install freeipmi-tools [Debian]"
+  ansible.builtin.apt:
+    name: freeipmi-tools
+    state: present
+    update_cache: true
+  when:
+    - "hostvars[inventory_hostname]['ansible_os_family'] == 'Debian'"
+- name: "ipmi_exporter | Install freeipmi [RedHat]"
+  ansible.builtin.yum:
+    name: freeipmi
+    state: present
+  when:
+    - "hostvars[inventory_hostname]['ansible_os_family'] == 'RedHat'"
+- name: "ipmi_exporter | Install freeipmi [Archlinux]"
+  community.general.pacman:
+    name: freeipmi
+    state: present
+  when:
+    - "hostvars[inventory_hostname]['ansible_os_family'] == 'Archlinux'"

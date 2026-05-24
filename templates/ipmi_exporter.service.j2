@@ -13,11 +13,11 @@
 {{ 'Type=simple' }}
 {{ 'Restart=on-failure' }}
 {{ 'RestartSec=30' }}
-{{ 'User=nobody' }}
-{{ 'Group=nobody' }}
+{{ 'User=' + (lookup('ansible.builtin.vars', 'ipmi_exporter_user', default='root') | string) }}
+{{ 'Group=' + (lookup('ansible.builtin.vars', 'ipmi_exporter_group', default='root') | string) }}
 {{ 'ExecStart=' + hostvars[inventory_hostname]['ipmi_exporter_dest'] +
   '/ipmi_exporter --config.file=' +
-  hostvars[inventory_hostname]['ipmi_exporter_dest'] + '/ipmi_exporter.yaml' -}}
+  hostvars[inventory_hostname]['ipmi_exporter_dest'] + '/ipmi_exporter.yml' -}}
 {% if lookup('ansible.builtin.vars', 'ipmi_exporter_options', default='')
   not in ['', [], '[]', None] %}
 {% for i in lookup('ansible.builtin.vars', 'ipmi_exporter_options') %}
