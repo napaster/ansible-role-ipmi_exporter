@@ -7,11 +7,14 @@ galaxy_info:
   description: "Deploy Prometheus ipmi_exporter"
   company: "YASB"
   license: "GPL"
-  min_ansible_version: "3.0.0"
+  min_ansible_version: "9.0.0"
   platforms:
+    - name: "ArchLinux"
+      versions:
+        - 'all'
     - name: "EL"
       versions:
         - 'all'
   galaxy_tags:
-    - 'system'
+    - 'monitoring'
 dependencies: []

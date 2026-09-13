@@ -5,15 +5,14 @@
   listen: "Daemon reload"
 - name: "ipmi_exporter | Restart ipmi_exporter service"
   ansible.builtin.systemd:
-    name: "{{ hostvars[inventory_hostname]['ipmi_exporter_service'] }}"
+    name: "{{ lookup('ansible.builtin.vars', 'ipmi_exporter_service') }}"
     state: "restarted"
   listen: "Restart ipmi_exporter"
   when:
-    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
-    - "hostvars[inventory_hostname]['ipmi_exporter']
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter', default='')
       not in ['', [], '[]', None]"
-    - "hostvars[inventory_hostname]['ipmi_exporter'] |
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter') |
        community.general.json_query(lookup('ansible.builtin.vars',
-       'ipmi_exporter_restart', default='')) == 'true'"
+      'ipmi_exporter_restart', default='')) == 'true'"
   vars:
     ipmi_exporter_restart: "[] | map(&restart || 'false', @) | [0]"

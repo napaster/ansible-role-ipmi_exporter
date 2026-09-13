@@ -1,7 +1,8 @@
 ---
 ipmi_exporter_dest: '/opt/ipmi_exporter'
 ipmi_exporter_conf_dest: '/etc/prometheus'
-ipmi_exporter_conf_filename: 'ipmi_exporter.yml'
+ipmi_exporter_yaml_dest: '/etc/prometheus/ipmi_exporter.yml'
+ipmi_exporter_options_dest: '/etc/conf.d/ipmi_exporter'
 ipmi_exporter_bin: '/usr/bin/ipmi_exporter'
 ipmi_exporter_service: 'ipmi_exporter'
 ipmi_exporter_package: 'ipmi_exporter'
