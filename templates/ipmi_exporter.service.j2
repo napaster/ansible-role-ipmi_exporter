@@ -3,14 +3,14 @@
 {{ '# Do not edit manually' }}
 
 {{ '[Unit]' }}
-{{ 'Description=Prometheus IPMI exporter' }}
-{{ 'After=network.target network-online.target basic.target' }}
-{{ 'Wants=network-online.target' }}
+{{ 'Description=Prometheus exporter for IPMI metrics' }}
+{{ 'Documentation=https://github.com/prometheus-community/ipmi_exporter' }}
+{{ 'After=network.target network-online.target nss-lookup.target basic.target' }}
+{{ 'Wants=network-online.target nss-lookup.target' }}
 {{ 'StartLimitIntervalSec=30' }}
 {{ 'StartLimitBurst=3' }}
 
 {{ '[Service]' }}
-{{ 'Type=simple' }}
 {{ 'Restart=on-failure' }}
 {{ 'RestartSec=30' }}
 {{ 'User=' + (lookup('ansible.builtin.vars', 'ipmi_exporter_user', default='root') | string) }}

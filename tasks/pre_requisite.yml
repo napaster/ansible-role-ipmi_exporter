@@ -1,32 +1,38 @@
 ---
+- name: "ipmi_exporter | Assert that ansible facts gathered successfully"
+  ansible.builtin.assert:
+    that:
+      - "hostvars[inventory_hostname]['ansible_facts']['service_mgr'] is
+        defined"
+    fail_msg: "'ansible_facts' not found. Please enable facts gathering"
+    quiet: "true"
 - name: "ipmi_exporter | Assert that system manager is systemd"
   ansible.builtin.assert:
     that:
-      - "hostvars[inventory_hostname]['ansible_service_mgr'] == 'systemd'"
+      - "hostvars[inventory_hostname]['ansible_facts']['service_mgr'] ==
+        'systemd'"
     fail_msg: "System manager is not systemd"
     quiet: "true"
-- name: "ipmi_exporter | Add the OS specific varibles"
+- name: "ipmi_exporter | Add the OS specific variables"
   ansible.builtin.include_vars:
-    file: "{{ hostvars[inventory_hostname]['ansible_os_family'] + '.yml' }}"
+    file: "{{ hostvars[inventory_hostname]['ansible_facts']['os_family'] +
+      '.yml' }}"
 - name: "ipmi_exporter | Set facts about ipmi_exporter role"
   ansible.builtin.set_fact:
-    ipmi_exporter_version:
-      "{{ hostvars[inventory_hostname]['ipmi_exporter'] |
-      community.general.json_query('[].version | [0]') | default(omit) }}"
-    ipmi_exporter_options:
-      "{{ hostvars[inventory_hostname]['ipmi_exporter'] |
-      community.general.json_query('[].options | [0]') | default(omit) }}"
-    ipmi_exporter_settings:
-      "{{ hostvars[inventory_hostname]['ipmi_exporter'] |
-      community.general.json_query('[].settings | [0]') | default(omit) }}"
-    ipmi_exporter_package_state:
-      "{{ hostvars[inventory_hostname]['ipmi_exporter'] |
-      community.general.json_query('[].package_state | [0]') | default(omit) }}"
+    ipmi_exporter_version: "{{ lookup('ansible.builtin.vars',
+      'ipmi_exporter') | community.general.json_query('[].version | [0]') }}"
+    ipmi_exporter_options: "{{ lookup('ansible.builtin.vars',
+      'ipmi_exporter') | community.general.json_query('[].options | [0]') }}"
+    ipmi_exporter_settings: "{{ lookup('ansible.builtin.vars',
+      'ipmi_exporter') | community.general.json_query('[].settings | [0]') }}"
+    ipmi_exporter_package_state: "{{ lookup('ansible.builtin.vars',
+      'ipmi_exporter') |
+      community.general.json_query('[].package_state | [0]') }}"
   when:
-    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
-    - "hostvars[inventory_hostname]['ipmi_exporter']
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter', default='')
       not in ['', [], '[]', None]"
-- name: "ipmi_exporter | Assert that ipmi_exporter package state in valid value"
+- name: "ipmi_exporter | Assert that ipmi_exporter package state in
+    valid value"
   ansible.builtin.assert:
     that:
       - "lookup('ansible.builtin.vars', 'ipmi_exporter_package_state') in
@@ -36,16 +42,15 @@
       'ipmi_exporter_package_state') }}"
     quiet: "true"
   when:
-    - "lookup('ansible.builtin.vars',
-      'ipmi_exporter_package_state', default='') not in ['', [], '[]', None,
-      'present', 'latest']"
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter_package_state',
+      default='') not in ['', [], '[]', None, 'present', 'latest']"
 - name: "ipmi_exporter | Set package state to 'present' cause value is not
     defined"
   ansible.builtin.set_fact:
     ipmi_exporter_package_state: "present"
   when:
-    - "lookup('ansible.builtin.vars',
-      'ipmi_exporter_package_state', default='') in ['', [], '[]', None]"
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter_package_state',
+      default='') in ['', [], '[]', None]"
 - name: "ipmi_exporter | Get last release version from Github"
   community.general.github_release:
     user: "prometheus-community"
@@ -55,22 +60,21 @@
   register: "ipmi_exporter_version_tag"
   delegate_to: "localhost"
   when:
-    - "lookup('ansible.builtin.vars',
-      'ipmi_exporter_version', default='') == 'latest'"
-    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
-    - "hostvars[inventory_hostname]['ipmi_exporter']
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter_version',
+      default='') == 'latest'"
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter', default='')
       not in ['', [], '[]', None]"
-    - "hostvars[inventory_hostname]['ipmi_exporter'] |
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter') |
        community.general.json_query(lookup('ansible.builtin.vars',
       'ipmi_exporter_install_package', default='')) == 'false'"
   vars:
-    ipmi_exporter_install_package:
-      "[] | map(&install_package || 'false', @) | [0]"
+    ipmi_exporter_install_package: "[] |
+      map(&install_package || 'false', @) | [0]"
 - name: "ipmi_exporter | Set facts about ipmi_exporter role"
   ansible.builtin.set_fact:
     ipmi_exporter_package_state: "present"
     ipmi_exporter_version: "{{ lookup('ansible.builtin.vars',
-      'ipmi_exporter_version_tag', default='')['tag'][1:] }}"
+      'ipmi_exporter_version_tag')['tag'][1:] }}"
   when:
     - "lookup('ansible.builtin.vars', 'ipmi_exporter_version_tag', default='')
       not in ['', [], '[]', None]"
@@ -78,35 +82,33 @@
       'ipmi_exporter_version_tag').get('skipped', false))"
 - name: "ipmi_exporter | Create ipmi_exporter catalog [package deployment]"
   ansible.builtin.file:
-    path: "{{ hostvars[inventory_hostname]['ipmi_exporter_conf_dest'] }}"
+    path: "{{ lookup('ansible.builtin.vars', 'ipmi_exporter_conf_dest') }}"
     state: "directory"
     owner: "root"
     group: "root"
     mode: "0755"
   when:
-    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
-    - "hostvars[inventory_hostname]['ipmi_exporter']
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter', default='')
       not in ['', [], '[]', None]"
-    - "hostvars[inventory_hostname]['ipmi_exporter'] |
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter') |
        community.general.json_query(lookup('ansible.builtin.vars',
-       'ipmi_exporter_install_package', default='')) == 'false'"
+      'ipmi_exporter_install_package', default='')) == 'false'"
   vars:
-    ipmi_exporter_install_package:
-      "[] | map(&install_package || 'false', @) | [0]"
+    ipmi_exporter_install_package: "[] |
+      map(&install_package || 'false', @) | [0]"
 - name: "ipmi_exporter | Create ipmi_exporter catalog [not package deployment]"
   ansible.builtin.file:
-    path: "{{ hostvars[inventory_hostname]['ipmi_exporter_dest'] }}"
+    path: "{{ lookup('ansible.builtin.vars', 'ipmi_exporter_dest') }}"
     state: "directory"
     owner: "root"
     group: "root"
     mode: "0755"
   when:
-    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
-    - "hostvars[inventory_hostname]['ipmi_exporter']
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter', default='')
       not in ['', [], '[]', None]"
-    - "hostvars[inventory_hostname]['ipmi_exporter'] |
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter') |
        community.general.json_query(lookup('ansible.builtin.vars',
-       'ipmi_exporter_install_package', default='')) == 'false'"
+      'ipmi_exporter_install_package', default='')) == 'false'"
   vars:
-    ipmi_exporter_install_package:
-      "[] | map(&install_package || 'false', @) | [0]"
+    ipmi_exporter_install_package: "[] |
+      map(&install_package || 'false', @) | [0]"

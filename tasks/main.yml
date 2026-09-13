@@ -22,25 +22,23 @@
   ansible.builtin.include_tasks:
     file: "packages.yml"
   when:
-    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
-    - "hostvars[inventory_hostname]['ipmi_exporter']
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter', default='')
       not in ['', [], '[]', None]"
-    - "hostvars[inventory_hostname]['ipmi_exporter'] |
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter') |
        community.general.json_query(lookup('ansible.builtin.vars',
       'ipmi_exporter_install_package', default='')) == 'true'"
   vars:
     ipmi_exporter_install_package: "[] |
       map(&install_package || 'false', @) | [0]"
-    ipmi_exporter_pacakges_variant:
-      "{{ hostvars[inventory_hostname]['ipmi_exporter_package'] }}"
+    ipmi_exporter_pacakges_variant: "{{ lookup('ansible.builtin.vars',
+      'ipmi_exporter_package') }}"
 - name: "ipmi_exporter | Include packages tasks [not package deployment]"
   ansible.builtin.include_tasks:
     file: "download.yml"
   when:
-    - "hostvars[inventory_hostname]['ipmi_exporter'] is defined"
-    - "hostvars[inventory_hostname]['ipmi_exporter']
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter', default='')
       not in ['', [], '[]', None]"
-    - "hostvars[inventory_hostname]['ipmi_exporter'] |
+    - "lookup('ansible.builtin.vars', 'ipmi_exporter') |
        community.general.json_query(lookup('ansible.builtin.vars',
       'ipmi_exporter_install_package', default='')) == 'false'"
   vars:

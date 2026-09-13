@@ -8,7 +8,8 @@
         update_cache: "yes"
     - name: "ipmi_exporter | Install package with dnf"
       ansible.builtin.dnf:
-        name: "{{ ipmi_exporter_pacakges_variant }}"
+        name: "{{ lookup('ansible.builtin.vars',
+          'ipmi_exporter_pacakges_variant') }}"
         state: "{{ lookup('ansible.builtin.vars',
           'ipmi_exporter_package_state') }}"
 - name: "ipmi_exporter | Install the required packages in Debian derivatives"
@@ -20,7 +21,8 @@
         update_cache: "yes"
     - name: "ipmi_exporter | Install package with apt"
       ansible.builtin.apt:
-        name: "{{ ipmi_exporter_pacakges_variant }}"
+        name: "{{ lookup('ansible.builtin.vars',
+          'ipmi_exporter_pacakges_variant') }}"
         state: "{{ lookup('ansible.builtin.vars',
           'ipmi_exporter_package_state') }}"
 - name: "ipmi_exporter | Install the required packages in ArchLinux derivatives"
@@ -33,6 +35,7 @@
         update_cache: "yes"
     - name: "ipmi_exporter | Install package with pacman"
       community.general.pacman:
-        name: "{{ ipmi_exporter_pacakges_variant }}"
+        name: "{{ lookup('ansible.builtin.vars',
+          'ipmi_exporter_pacakges_variant') }}"
         state: "{{ lookup('ansible.builtin.vars',
           'ipmi_exporter_package_state') }}"

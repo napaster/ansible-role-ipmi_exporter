@@ -5,7 +5,7 @@ Role for deploy Prometheus
 
 ## Requirements
 
-* Ansible 3.0.0+;
+* Ansible 9.0.0+;
 
 Example configuration
 -------------------------
